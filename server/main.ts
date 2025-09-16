@@ -36,6 +36,7 @@ export async function main() {
     }
 
     const update = {
+      end: game.isEnd,
       game: game.map.map(item => {
         if (!item)
           return null;

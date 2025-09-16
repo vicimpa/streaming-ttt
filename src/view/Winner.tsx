@@ -4,6 +4,7 @@ import { useComputed, useSignal, useSignalEffect } from "@preact/signals-react";
 import rsp from "@vicimpa/rsp";
 import { Variables } from "./Variables";
 import { useSocketEvent } from "../utils/socket";
+import sound from "../utils/sound";
 
 const Animate = styled.div`
   display: contents;
@@ -31,9 +32,17 @@ export const Winner = () => {
   const start = useSignal(!name.value);
   const avatarUrl = useComputed(() => avatar.value ? `url("${avatar.value}")` : null);
 
-  useSocketEvent('update', ({ winner, game }: any) => {
-    if (game)
+  useSocketEvent('update', ({ winner, game, end }: any) => {
+    if (game) {
       current.value = winner ?? null;
+    }
+
+    if (end) {
+      if (winner)
+        sound.win.play();
+      else
+        sound.nowin.play();
+    }
   });
 
   useSignalEffect(() => {
@@ -46,7 +55,7 @@ export const Winner = () => {
     <rsp.$ $target={Animate} data-start={start}>
       <Backdrop />
       <Spinners />
-      <Popover>
+      <Popover onTransitionEnd={() => !start.value && sound.showWIn.play(.5)}>
         <CrownAvatar>
           <Variables image={avatarUrl}>
             <Avatar $size={74} />

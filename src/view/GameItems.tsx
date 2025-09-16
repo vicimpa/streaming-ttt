@@ -3,6 +3,7 @@ import { Item, ItemText } from "./styled";
 import { array } from "../utils/array";
 import styled, { keyframes } from "styled-components";
 import { useSocketEvent } from "../utils/socket";
+import sound from "../utils/sound";
 
 type Item = { id: string; name: string, x: boolean; win?: true; } | null;
 
@@ -63,8 +64,15 @@ export const GameItems = () => {
   const items = useSignal<Item[]>([]);
 
   useSocketEvent('update', ({ game }: any) => {
-    if (game && Array.isArray(game))
+    if (game && Array.isArray(game)) {
+
       items.value = game;
+      if (game.every(e => !Boolean(e)))
+        sound.new.play();
+      else
+        sound.tick.play();
+    }
+
   });
 
   return useComputed(() => (
