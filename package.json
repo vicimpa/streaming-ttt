@@ -12,11 +12,14 @@
     "@preact/signals-react": "^3.3.0",
     "@sinclair/typebox": "^0.34.41",
     "@vicimpa/events": "^0.0.13",
+    "@vicimpa/glm": "^0.1.7",
+    "@vicimpa/observers": "^0.0.9",
     "@vicimpa/rsp": "^0.1.8",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "socket.io-client": "^4.8.1",
-    "styled-components": "^6.1.19"
+    "styled-components": "^6.1.19",
+    "twgl.js": "^7.0.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
@@ -31,6 +34,7 @@
     "typeorm": "^0.3.26",
     "typescript": "~5.8.3",
     "vite": "^7.1.2",
+    "vite-plugin-glsl": "^1.5.1",
     "vite-plugin-svgr": "^4.5.0"
   }
 }

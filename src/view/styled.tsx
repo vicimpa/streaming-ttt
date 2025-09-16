@@ -251,3 +251,13 @@ export const CrownAvatar = styled.div`
     filter: drop-shadow(0 4px 4px rgba(0,0,0,0.25));
   }
 `;
+
+export const ShaderContainer = styled.div`
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+
+  & canvas {
+    position: absolute;
+  }
+`;
