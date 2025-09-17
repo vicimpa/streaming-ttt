@@ -50,13 +50,13 @@ const Animate = styled.div`
   &[data-has=true] {
     ${Item}::after { animation: ${space} 0.3s linear; }
     ${Item}::before { opacity: 1; }
-    ${ItemText} { transform: scale(1) translateY(0px); opacity: 1;  transition: .3s .1s; }
+    ${ItemText} { transform: scale(1) translateY(0px); opacity: 1; transition: .3s .1s; }
   }
 
   &:not([data-has=true]) {
     transition: .1s;
     ${Item}::before { opacity: 0; }
-    ${ItemText} { transform: scale(2) translateY(200px);  opacity: 0;  transition: 0s 0s; }
+    ${ItemText} { transform: scale(2) translateY(200px); opacity: 0; transition: 0s 0s; }
   }
 `;
 
@@ -72,7 +72,6 @@ export const GameItems = () => {
       else
         sound.tick.play();
     }
-
   });
 
   return useComputed(() => (
@@ -82,9 +81,7 @@ export const GameItems = () => {
       return (
         <Animate key={i} data-has={!!item} data-win={item?.win}>
           <Item $draw={item ? (item.x ? 'x' : 'o') : undefined}>
-            {item ? (
-              <ItemText>{item?.name}</ItemText>
-            ) : null}
+            <ItemText>{item?.name}</ItemText>
           </Item>
         </Animate>
       );

@@ -2,6 +2,7 @@ import type { PropsWithChildren } from "react";
 import { useCurrentSignal, type MaybeSignal } from "../utils/signals";
 import { useSignalEffect } from "@preact/signals-react";
 import { useSignalRef } from "@preact/signals-react/utils";
+import { useSignalRect } from "../utils/rect";
 
 export type RectProps<T> = {
   target?: MaybeSignal<T | null>;
@@ -9,16 +10,14 @@ export type RectProps<T> = {
 
 export const Rect = <T extends Element>({ children, target }: RectProps<T>) => {
   const ref = useSignalRef<HTMLDivElement | null>(null);
-  const currentTarget = useCurrentSignal(target);
+  const rect = useSignalRect(target ?? null);
 
   useSignalEffect(() => {
     const { value: div } = ref;
-    const { value: target } = currentTarget;
+    const { value: { x, y, width, height } } = rect;
 
-    if (!div || !target)
+    if (!div)
       return;
-
-    const { x, y, width, height } = target.getBoundingClientRect();
 
     Object.assign(div.style, {
       position: 'fixed',
