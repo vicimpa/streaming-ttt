@@ -151,5 +151,3 @@ Events emitted by server:
 * Add the frontend page (`vite dev` or `vite preview` URL) as a Browser Source in OBS.
 * Configure your chat bot to forward chat commands to the API.
 * Done: viewers play Tic-Tac-Toe live on your stream!
-
-```
