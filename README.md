@@ -1,69 +1,155 @@
-# React + TypeScript + Vite
+# 🎮 Tic-Tac-Toe Stream
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interactive Tic-Tac-Toe for livestreams.  
+Viewers send commands in the chat → your bot forwards them to the API → the board updates live with animations, sounds, and shader effects.  
 
-Currently, two official plugins are available:
+## ✨ Features
+- 🌐 **Integrated frontend + backend** (via custom Vite plugin).
+- 🕹️ Real-time gameplay:
+  - `Express + Socket.IO` backend.
+  - Reactive UI with `preact/signals`.
+- 📊 Leaderboard of players (wins stored in DB).
+- 🎨 Stream-ready UI:
+  - Animated cells with effects on click/win.
+  - Player names displayed on the board.
+  - Shader-powered background (`WebGL2`, `twgl.js`).
+- 📺 Perfect for OBS overlays and livestream integration.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Backend
+- `express` — REST API for chat-bot integration.
+- `socket.io` — realtime updates to the frontend.
+- `@sinclair/typebox` — DTO validation.
+- Game logic stored in memory (`Game`):
+  - 9 cells.
+  - Automatic winner detection.
+  - Auto-restart 5s after the game ends.
+- Leaderboard persisted in the database.
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Frontend
+- `vite` + `preact` + `styled-components`.
+- `preact/signals` — reactive state management.
+- `twgl.js` — WebGL2 shaders (animated background).
+- Components:
+  - `<GameItems />` — the board.
+  - `<LeadItems />` — leaderboard.
+  - `<Winner />` — winner overlay.
+  - `<Shader />` — background shader.
+  - `<Chat />` — integrated chat box.
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+### Dev Infrastructure
+- 📦 Custom **Vite plugin** launches backend alongside the dev server.
+- Automatic proxying `/api` → Express backend.
+- Works in both `vite dev` and `vite preview`.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+## 🚀 Getting Started
+
+### Development
+```bash
+npm install
+npm run dev
+````
+
+* Vite serves frontend at `http://localhost:5173/`
+* API requests (`/api/...`) and WebSocket (`/api/ws`) are proxied to the embedded backend.
+
+### Production
+
+```bash
+npm run build
+npm run preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+* `vite preview` automatically starts the backend.
+* Open `http://localhost:4173/`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default tseslint.config([
-  globalIgnores(['dist']),
+## 📡 API
+
+### REST
+
+These endpoints are called by your **stream chat bot**, not directly by players.
+
+* `POST /api/tick` — make a move
+
+  ```json
   {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
+    "id": 1,           // Cell number (1–9)
+    "name": "Player",  // Display name
+    "address": "0x...",// Unique identifier (chat user ID, etc.)
+    "avatar": "url"    // Optional avatar image
+  }
+  ```
+
+  **Responses:**
+
+  * `"Ok"` — move accepted.
+  * `"Game stopped"` — game already ended.
+  * `"Timeout"` — moves too fast (1s cooldown).
+  * `"Error: ..."` — invalid request.
+
+* `POST /api/update` — update player info
+
+  ```json
+  {
+    "name": "Player",
+    "address": "0x...",
+    "avatar": "url"
+  }
+  ```
+
+  **Response:** updated player object.
+
+* `GET /api/leaderboard` — get leaderboard
+  **Response:** array of users with win counts.
+
+### WebSocket (`/api/ws`)
+
+Events emitted by server:
+
+* `update`
+
+  ```json
+  {
+    "game": [
+      { "id": "user1", "name": "Alice", "x": true, "win": true },
+      { "id": "user2", "name": "Bob",   "x": false }
+      // 9 items total (null for empty cells)
     ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+    "end": false,
+    "winner": {
+      "id": "user1",
+      "name": "Alice",
+      "avatar": "..."
+    }
+  }
+  ```
+* `update` with `{ leads: [...] }` — leaderboard updates.
+
+---
+
+## 🔄 Data Flow
+
+1. Viewer types a command in the **stream chat** (e.g. `!move 3`).
+2. Your chat bot parses the command and sends a `POST /api/tick` to the backend.
+3. Backend (`Game.setValue`) validates and applies the move.
+4. If a player wins → DB is updated, game restarts in 5s.
+5. Backend broadcasts `update` via WebSocket to all connected frontends.
+6. Frontend receives the update → board, leaderboard, winner screen update automatically.
+7. OBS captures the browser window → stream audience sees the live game.
+
+---
+
+## 🎥 Streaming Setup
+
+* Add the frontend page (`vite dev` or `vite preview` URL) as a Browser Source in OBS.
+* Configure your chat bot to forward chat commands to the API.
+* Done: viewers play Tic-Tac-Toe live on your stream!
+
 ```
